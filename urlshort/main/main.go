@@ -20,22 +20,17 @@ func main() {
 	flag.StringVar(&yamlFile, "yaml", "urls.yaml", "a yaml file that contains the URL mappings")
 	flag.Parse()
 
+	// create HttpHandler
 	mux := defaultMux()
-
-	// Build the MapHandler using the mux as the fallback
-	pathsToUrls := map[string]string{
-		"/my-github":   "https://github.com/dhwaneetbhatt",
-		"/gophercises": "https://gophercises.com",
-	}
-	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
 	yaml, err := ioutil.ReadFile(yamlFile)
 	check(err)
-	yamlHandler, err := urlshort.YAMLHandler(yaml, mapHandler)
+	yamlHandler, err := urlshort.YAMLHandler(yaml, mux)
 	check(err)
 
+	// start the server and listen for requests
 	fmt.Println("Starting the server on :8080")
 	http.ListenAndServe(":8080", yamlHandler)
 }

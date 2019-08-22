@@ -53,7 +53,7 @@ func parseYAML(yml []byte) (mappings []map[string]string, err error) {
 	return
 }
 
-// buildMap creates a map of path to URL from []pathToUrl
+// buildMap creates a map of path to URL
 func buildMap(mappings []map[string]string) map[string]string {
 	returnMap := make(map[string]string)
 	for _, m := range mappings {
