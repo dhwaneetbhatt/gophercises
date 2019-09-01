@@ -1,2 +1,2 @@
 # gophercises
-Solutions for Gophercises on https://gophercises.com
+Solutions for Go exercises on https://gophercises.com
