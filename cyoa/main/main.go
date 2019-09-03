@@ -3,11 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"text/template"
 
 	"github.com/dhwaneetbhatt/gophercises/cyoa"
 )
@@ -19,35 +16,21 @@ func checkAndPanic(err error) {
 }
 
 func main() {
-	port := flag.Int("port", 3000, "the port to start the server on")
-	filename := flag.String("JSON file", "gopher.json", "path to JSON file containing the story")
+	storyPath := flag.String("Story JSON file", "gopher.json", "path to JSON file containing the story")
 	templatePath := flag.String("template file path", "default.tmpl", "path for the HTML template file for rendering the story")
+	port := flag.Int("port", 3000, "the port to start the server on")
 	flag.Parse()
 
-	reader, err := os.Open(*filename)
+	// parse settings, create a new HTTP handler and start the server
+	settings := cyoa.Settings{StoryFilePath: *storyPath, TemplatePath: *templatePath}
+	handler, err := cyoa.NewHandler(settings)
 	checkAndPanic(err)
-
-	story, err := cyoa.JSONStory(reader)
-	checkAndPanic(err)
-
-	template, err := parseTemplate(*templatePath)
-	checkAndPanic(err)
-
-	handler := cyoa.NewHandler(story, cyoa.WithCustomTemplate(template))
-	startServer(*port, story, handler)
+	startServer(*port, handler)
 }
 
-func startServer(port int, story cyoa.Story, handler http.Handler) {
+func startServer(port int, handler http.Handler) {
 	mux := http.NewServeMux()
 	mux.Handle("/", handler)
 	fmt.Printf("Starting the server on port: %d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handler), mux)
-}
-
-func parseTemplate(templatePath string) (*template.Template, error) {
-	bytes, err := ioutil.ReadFile(templatePath)
-	if err != nil {
-		return nil, err
-	}
-	return template.Must(template.New("").Parse(string(bytes))), nil
 }

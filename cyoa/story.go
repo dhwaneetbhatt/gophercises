@@ -2,18 +2,34 @@ package cyoa
 
 import (
 	"encoding/json"
-	"io"
+	"os"
 )
 
-// JSONStory returns a story from a JSON file
-func JSONStory(r io.Reader) (Story, error) {
-	decoder := json.NewDecoder(r)
+// ParseStory returns a story from a JSON file
+func ParseStory(storyFilePath string) (Story, error) {
+	reader, err := os.Open(storyFilePath)
+	if err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(reader)
 	var story Story
-	err := decoder.Decode(&story)
+	err = decoder.Decode(&story)
 	if err != nil {
 		return nil, err
 	}
 	return story, nil
+}
+
+// GetChapter returns the next chapter from the path
+func (story Story) GetChapter(path string) string {
+	if path == "" || path == "/" {
+		path = getDefaultChapter()
+	}
+	return path
+}
+
+func getDefaultChapter() string {
+	return "intro"
 }
 
 // Story which defined the mapping from chaper names to Story
