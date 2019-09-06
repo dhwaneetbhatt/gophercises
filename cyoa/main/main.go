@@ -16,8 +16,8 @@ func checkAndPanic(err error) {
 }
 
 func main() {
-	storyPath := flag.String("Story JSON file", "gopher.json", "path to JSON file containing the story")
-	templatePath := flag.String("template file path", "default.tmpl", "path for the HTML template file for rendering the story")
+	storyPath := flag.String("story", "gopher.json", "path to JSON file containing the story")
+	templatePath := flag.String("template", "default.tmpl", "path for the HTML template file for rendering the story")
 	port := flag.Int("port", 3000, "the port to start the server on")
 	flag.Parse()
 
