@@ -1,7 +1,6 @@
 package link
 
 import (
-	"fmt"
 	"io"
 
 	"golang.org/x/net/html"
@@ -19,35 +18,32 @@ func Parse(r io.Reader) ([]Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dfs(doc), nil
+	nodes := linkNodes(doc)
+	var links []Link
+	for _, node := range nodes {
+		links = append(links, parseLink(node))
+	}
+	return links, nil
 }
 
-func dfs(node *html.Node) []Link {
-	var links []Link
-	if node == nil {
-		return links
+func linkNodes(node *html.Node) []*html.Node {
+	if node.Type == html.ElementNode && node.Data == "a" {
+		return []*html.Node{node}
 	}
-	if node.Data == "a" {
-		link := parseLink(node)
-		links = append(links, link)
+	var nodes []*html.Node
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		nodes = append(nodes, linkNodes(c)...)
 	}
-	links = append(links, dfs(node.FirstChild)...)
-	links = append(links, dfs(node.NextSibling)...)
-	return links
+	return nodes
 }
 
 func parseLink(node *html.Node) Link {
 	link := Link{}
-	attrs := node.Attr
-	for _, a := range attrs {
+	for _, a := range node.Attr {
 		if a.Key == "href" {
 			link.Href = a.Val
+			break
 		}
-	}
-	child := node.FirstChild
-	for child != nil {
-		fmt.Printf("%+v\n", child)
-		child = child.NextSibling
 	}
 	return link
 }
