@@ -8,12 +8,6 @@ import (
 	"github.com/dhwaneetbhatt/gophercises/link"
 )
 
-// Link represent the a tag in the HTML document
-type Link struct {
-	Href string
-	text string
-}
-
 func checkAndPanic(err error) {
 	if err != nil {
 		panic(err)
@@ -26,6 +20,7 @@ func main() {
 
 	r, err := os.Open(*htmlFilePath)
 	checkAndPanic(err)
+	defer r.Close()
 
 	links, err := link.Parse(r)
 	checkAndPanic(err)

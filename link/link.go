@@ -2,6 +2,7 @@ package link
 
 import (
 	"io"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -9,7 +10,7 @@ import (
 // Link represent the link tag in the HTML document
 type Link struct {
 	Href string
-	text string
+	Text string
 }
 
 // Parse returns list of parsed links from the HTML document
@@ -26,6 +27,7 @@ func Parse(r io.Reader) ([]Link, error) {
 	return links, nil
 }
 
+// linkNodes does a Depth First Search on the html document and returns all link nodes
 func linkNodes(node *html.Node) []*html.Node {
 	if node.Type == html.ElementNode && node.Data == "a" {
 		return []*html.Node{node}
@@ -37,6 +39,7 @@ func linkNodes(node *html.Node) []*html.Node {
 	return nodes
 }
 
+// parseLink parses an HTML node to retun a Link struct
 func parseLink(node *html.Node) Link {
 	link := Link{}
 	for _, a := range node.Attr {
@@ -45,5 +48,21 @@ func parseLink(node *html.Node) Link {
 			break
 		}
 	}
+	link.Text = text(node)
 	return link
+}
+
+// text extracts the text from the HTML node and its children
+func text(node *html.Node) string {
+	if node.Type == html.TextNode {
+		return node.Data
+	}
+	if node.Type != html.ElementNode {
+		return ""
+	}
+	var ret string
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		ret += text(c)
+	}
+	return strings.TrimSpace(ret)
 }
