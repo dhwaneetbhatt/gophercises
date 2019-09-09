@@ -15,8 +15,12 @@ func checkAndPanic(err error) {
 }
 
 func main() {
-	htmlFilePath := flag.String("html", "ex1.html", "path to the HTML file")
+	htmlFilePath := flag.String("html", "", "path to the HTML file")
 	flag.Parse()
+	if *htmlFilePath == "" {
+		fmt.Println("path to the HTML file is required")
+		os.Exit(1)
+	}
 
 	r, err := os.Open(*htmlFilePath)
 	checkAndPanic(err)
@@ -24,5 +28,7 @@ func main() {
 
 	links, err := link.Parse(r)
 	checkAndPanic(err)
-	fmt.Printf("%+v\n", links)
+	for _, m := range links {
+		fmt.Printf("%+v\n", m)
+	}
 }
