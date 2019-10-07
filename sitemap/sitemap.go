@@ -11,11 +11,37 @@ import (
 )
 
 // Get builds a sitemap of the given website
-func Get(website string) {
-	pages := get(website)
+func Get(website string, maxDepth int) {
+	pages := bfs(website, maxDepth)
 	for _, page := range pages {
 		fmt.Println(page)
 	}
+}
+
+// bfs does a BFS of the website
+func bfs(website string, maxDepth int) []string {
+	visited := make(map[string]bool)
+	var queue map[string]bool
+	nextQueue := map[string]bool{
+		website: true,
+	}
+	for i := 0; i <= maxDepth; i++ {
+		queue, nextQueue = nextQueue, make(map[string]bool)
+		for url := range queue {
+			if visited[url] {
+				continue
+			}
+			visited[url] = true
+			for _, link := range get(url) {
+				nextQueue[link] = true
+			}
+		}
+	}
+	ret := make([]string, 0, len(visited))
+	for url := range visited {
+		ret = append(ret, url)
+	}
+	return ret
 }
 
 // get reads a website and returns the list of links on the page
