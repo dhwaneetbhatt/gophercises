@@ -1,7 +1,7 @@
 package sitemap
 
 import (
-	"fmt"
+	"encoding/xml"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,12 +10,34 @@ import (
 	"github.com/dhwaneetbhatt/gophercises/link"
 )
 
+type loc struct {
+	Value string `xml:"loc"`
+}
+
+type urlset struct {
+	Urls  []loc  `xml:"url"`
+	Xmlns string `xml:"xmlns,attr"`
+}
+
 // Get builds a sitemap of the given website
-func Get(website string, maxDepth int) {
+func Get(website string, maxDepth int, writer io.Writer) error {
 	pages := bfs(website, maxDepth)
+	return writeToXML(pages, writer)
+}
+
+// writeToXML writes the pages to Sitemap XML format
+func writeToXML(pages []string, writer io.Writer) error {
+	toXML := urlset{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 	for _, page := range pages {
-		fmt.Println(page)
+		toXML.Urls = append(toXML.Urls, loc{page})
 	}
+	writer.Write([]byte(xml.Header))
+	encoder := xml.NewEncoder(writer)
+	encoder.Indent("", "  ")
+	if err := encoder.Encode(toXML); err != nil {
+		return err
+	}
+	return nil
 }
 
 // bfs does a BFS of the website
@@ -27,13 +49,18 @@ func bfs(website string, maxDepth int) []string {
 	}
 	for i := 0; i <= maxDepth; i++ {
 		queue, nextQueue = nextQueue, make(map[string]bool)
+		if len(queue) == 0 {
+			break
+		}
 		for url := range queue {
 			if visited[url] {
 				continue
 			}
 			visited[url] = true
 			for _, link := range get(url) {
-				nextQueue[link] = true
+				if !visited[link] {
+					nextQueue[link] = true
+				}
 			}
 		}
 	}
